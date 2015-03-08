@@ -1,5 +1,7 @@
 local wibox = require("wibox")
 local awful = require("awful")
+local beautiful = require("beautiful")
+local naughty = require("naughty")
 
 local indicator = {}
 local function worker(args)
@@ -9,9 +11,11 @@ local function worker(args)
 
     -- Settings come here
     local timeout   = args.timeout or 10
-    local battery   = "/sys/class/power_supply/BAT0/"
+    local battery   = args.battery or "BAT0/"
+    local font      = args.font or beautiful.font
 
-    local catbat = "cat " .. battery
+    local battery_path = "/sys/class/power_supply/" .. battery
+    local catbat = "cat " .. battery_path
 
     -- Widget contents
     local bat_text = wibox.widget.textbox()
@@ -19,15 +23,17 @@ local function worker(args)
 
     local acpi_timer = timer({ timeout = timeout })
     local battery_level = 0
-    local battery_status = "⬇"
+    local status = ""
+    -- Change this based on lookup
+    local battery_connected = true
 
     local function acpi_update()
+        local battery_status = ""
         -- Do acpi update stuff and set bat text accordingly
-        local energy_full = tonumber(awful.util.pread(catbat .. "energy_full"))
-        local energy_now = tonumber(awful.util.pread(catbat .. "energy_now"))
-        battery_level = math.floor((energy_now / energy_full)*100)
+        local capacity = awful.util.pread(catbat .. "capacity")
+        battery_level = string.match(capacity, "([0-9]*)") or "N/A"
 
-        local status = awful.util.pread(catbat .. "status")
+        status = awful.util.pread(catbat .. "status")
         if string.match(status, "Charging") then
             battery_status = "⬆"
         else
@@ -41,6 +47,43 @@ local function worker(args)
     acpi_timer:start()
 
     widget:add(bat_text)
+
+    local function fetch_popup_text()
+        local msg = ""
+        if battery_connected then
+            local remaining = awful.util.pread("acpi | cut -d, -f 3")
+            msg =
+                "<span font_desc=\""..font.."\">"..
+                "┌["..battery.."]\n"..
+                "├Status: "..status..
+                "└Time:\t"..remaining.."</span>"
+        else
+            msg = "Battery is not present."
+        end
+
+        return msg
+    end
+
+    local notification = nil
+    function widget:hide()
+        if notification ~= nil then
+            naughty.destroy(notification)
+            notification = nil
+        end
+    end
+
+    function widget:show(tout)
+        widget:hide()
+
+        notification = naughty.notify({
+            preset = fs_notification_preset,
+            text = fetch_popup_text(),
+            timeout = tout
+        })
+    end
+
+    widget:connect_signal('mouse::enter', function () widget:show(0) end)
+    widget:connect_signal('mouse::leave', function () widget:hide() end)
 
     return widget
 end
