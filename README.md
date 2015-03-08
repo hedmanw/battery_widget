@@ -19,3 +19,4 @@ battery_indicator = battery_widgets.indicator({
   font    = "SourceCodePro 11" -- font to use in popup. should be monospaced. default = beautiful.font
 })
 ```
+Don't forget to add it to your wibox layout!
