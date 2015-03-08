@@ -1,10 +1,9 @@
 local module_path = (...):match ("(.+/)[^/]+$") or ""
 
-package.loaded.battery_widgets = nil
+package.loaded.battery_widget = nil
 
-local battery_widgets = {
-    indicator   = require(module_path .. "battery_widgets.indicator"),
-    --status      = require(module_path .. "battery_widgets.status")
+local battery_widget = {
+    indicator   = require(module_path .. "battery_widget.indicator"),
 }
 
-return battery_widgets
+return battery_widget
