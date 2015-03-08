@@ -19,7 +19,7 @@ local function worker(args)
 
     local acpi_timer = timer({ timeout = timeout })
     local battery_level = 0
-    local battery_status = "↓"
+    local battery_status = "⬇"
 
     local function acpi_update()
         -- Do acpi update stuff and set bat text accordingly
@@ -29,9 +29,9 @@ local function worker(args)
 
         local status = awful.util.pread(catbat .. "status")
         if string.match(status, "Charging") then
-            battery_status = "^"
+            battery_status = "⬆"
         else
-            battery_status = "↓"
+            battery_status = "⬇"
         end
         bat_text:set_text(battery_status .. battery_level .. "%")
     end
