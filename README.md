@@ -12,7 +12,7 @@ local battery_widget = require("battery_widget")
 ```
 Create the widget and configure it with
 ```Lua
-battery_indicator = battery_widgets.indicator({
+battery_indicator = battery_widget.indicator({
   -- Options (all optional)
   timeout = 10 -- update interval in seconds. default = 10
   battery = "BAT0/" -- battery path in /sys/class/power_supply/. default = "BAT0/"
