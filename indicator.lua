@@ -57,23 +57,6 @@ local function worker(args)
 
     widget:add(bat_text)
 
-    local function fetch_popup_text()
-        local msg = ""
-        if battery_connected then
-            awful.spawn.easy_async("acpi | cut -d, -f 3", function(remaining, _, _, _)
-                msg =
-                    "<span font_desc=\""..font.."\">"..
-                    "┌["..battery.."]\n"..
-                    "├Status: "..status..
-                    "└Time:\t"..remaining.."</span>"
-           end)
-        else
-            msg = "Battery is not present."
-        end
-
-        return msg
-    end
-
     local notification = nil
     function widget:hide()
         if notification ~= nil then
@@ -85,11 +68,20 @@ local function worker(args)
     function widget:show(tout)
         widget:hide()
 
-        notification = naughty.notify({
-            preset = fs_notification_preset,
-            text = fetch_popup_text(),
-            timeout = tout
-        })
+        local msg = "Battery not present."
+        awful.spawn.easy_async({"bash", "-c", "acpi | cut -d, -f 3"}, function(remaining, _, _, _)
+                msg =
+                    "<span font_desc=\""..font.."\">"..
+                    "┌["..battery.."]\n"..
+                    "├Status: "..status..
+                    "└Time:\t"..remaining.."</span>"
+
+            notification = naughty.notify({
+                preset = fs_notification_preset,
+                text = msg,
+                timeout = tout
+            })
+        end)
     end
 
     widget:connect_signal('mouse::enter', function () widget:show(0) end)
