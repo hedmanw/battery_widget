@@ -20,12 +20,14 @@ local function worker(args)
 
     -- Widget contents
     local bat_text = wibox.widget.textbox()
-    bat_text:set_text("Hello!")
+    bat_text:set_text("No info!")
 
     local battery_level = 0
     local status = ""
     -- Change this based on lookup
     local battery_connected = true
+
+    local acpi_timer = nil
 
     local function acpi_update()
         local battery_status = ""
@@ -41,19 +43,15 @@ local function worker(args)
                     battery_status = "⬇"
                 end
                 bat_text:set_text(battery_status .. battery_level .. "%")
+
+                acpi_timer:start()
             end)
         end)
     end
 
-    acpi_update()
+    acpi_timer = gears.timer.start_new(timeout, function() acpi_update() end)
 
-    local acpi_timer = gears.timer {
-        timeout = timeout,
-        autostart = true,
-        callback = function()
-            acpi_update()
-        end
-    }
+    acpi_update()
 
     widget:add(bat_text)
 
