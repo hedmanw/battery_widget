@@ -11,7 +11,7 @@ local function worker(args)
     local widget = wibox.layout.fixed.horizontal()
 
     -- Settings come here
-    local timeout   = args.timeout or 10
+    local timeout   = args.timeout or 60
     local battery   = args.battery or "BAT0/"
     local font      = args.font or beautiful.font
 
