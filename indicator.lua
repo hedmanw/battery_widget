@@ -2,6 +2,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
+local gears = require("gears")
 
 local indicator = {}
 local function worker(args)
@@ -21,7 +22,6 @@ local function worker(args)
     local bat_text = wibox.widget.textbox()
     bat_text:set_text("Hello!")
 
-    local acpi_timer = timer({ timeout = timeout })
     local battery_level = 0
     local status = ""
     -- Change this based on lookup
@@ -46,8 +46,14 @@ local function worker(args)
     end
 
     acpi_update()
-    acpi_timer:connect_signal("timeout", acpi_update)
-    acpi_timer:start()
+
+    local acpi_timer = gears.timer {
+        timeout = timeout,
+        autostart = true,
+        callback = function()
+            acpi_update()
+        end
+    }
 
     widget:add(bat_text)
 
