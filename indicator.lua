@@ -30,16 +30,19 @@ local function worker(args)
     local function acpi_update()
         local battery_status = ""
         -- Do acpi update stuff and set bat text accordingly
-        local capacity = awful.util.pread(catbat .. "capacity")
-        battery_level = string.match(capacity, "([0-9]*)") or "N/A"
+        awful.spawn.easy_async(catbat .. "capacity", function(capacity, _, _, _)
+            battery_level = string.match(capacity, "([0-9]*)") or "N/A"
 
-        status = awful.util.pread(catbat .. "status")
-        if string.match(status, "Charging") then
-            battery_status = "⬆"
-        else
-            battery_status = "⬇"
-        end
-        bat_text:set_text(battery_status .. battery_level .. "%")
+            awful.spawn.easy_async(catbat .. "status", function(status_val, _, _, _)
+                status = status_val
+                if string.match(status, "Charging") then
+                    battery_status = "⬆"
+                else
+                    battery_status = "⬇"
+                end
+                bat_text:set_text(battery_status .. battery_level .. "%")
+            end)
+        end)
     end
 
     acpi_update()
@@ -51,12 +54,13 @@ local function worker(args)
     local function fetch_popup_text()
         local msg = ""
         if battery_connected then
-            local remaining = awful.util.pread("acpi | cut -d, -f 3")
-            msg =
-                "<span font_desc=\""..font.."\">"..
-                "┌["..battery.."]\n"..
-                "├Status: "..status..
-                "└Time:\t"..remaining.."</span>"
+            awful.spawn.easy_async("acpi | cut -d, -f 3", function(remaining, _, _, _)
+                msg =
+                    "<span font_desc=\""..font.."\">"..
+                    "┌["..battery.."]\n"..
+                    "├Status: "..status..
+                    "└Time:\t"..remaining.."</span>"
+           end)
         else
             msg = "Battery is not present."
         end
